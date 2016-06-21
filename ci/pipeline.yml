@@ -49,7 +49,7 @@ resources:
   type: s3
   source:
     bucket: {{S3_BUCKET}}
-    regexp: deployments/concourse-demo-(.*).war
+    regexp: deployments/concourse-demo-(.*).jar
     access_key_id: {{S3_ACCESS_KEY_ID}}
     secret_access_key: {{S3_SECRET_ACCESS_KEY}}
 
@@ -74,7 +74,7 @@ jobs:
     timeout: 5m
   - put: artifact-repository
     params:
-      file: artifact-dir/concourse-demo-*.war
+      file: artifact-dir/concourse-demo-*.jar
   - put: git-repo
     params:
       repository: git-repo
@@ -95,7 +95,7 @@ jobs:
     params:
       manifest: git-repo/manifest-test.yml
       current_app_name: concourse-demo
-      path: artifact-repository/concourse-demo-*.war
+      path: artifact-repository/concourse-demo-*.jar
   - task: verify
     file: git-repo/ci/tasks/verify-test.yml
     params:
@@ -114,7 +114,7 @@ jobs:
     params:
       manifest: git-repo/manifest-uat.yml
       current_app_name: concourse-demo
-      path: artifact-repository/concourse-demo-*.war
+      path: artifact-repository/concourse-demo-*.jar
 
 - name: manual-deploy-to-prod
   serial: true
@@ -128,4 +128,4 @@ jobs:
     params:
       manifest: git-repo/manifest-prod.yml
       current_app_name: concourse-demo
-      path: artifact-repository/concourse-demo-*.war
+      path: artifact-repository/concourse-demo-*.jar
