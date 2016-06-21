@@ -1,0 +1,13 @@
+---
+platform: linux
+
+image: docker:///datianshi/cf-cli
+
+inputs:
+  - name: git-repo
+
+run:
+  path: git-repo/ci/tasks/verify-test.sh
+
+params:
+  CONCOURSE_DEMO_URL:

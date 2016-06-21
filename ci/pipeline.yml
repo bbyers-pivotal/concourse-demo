@@ -1,0 +1,131 @@
+resources:
+- name: git-repo
+  type: git
+  source:
+    uri: {{GIT_REPO}}
+    branch: master
+    private_key: {{GIT_PRIVATE_KEY}}
+
+- name: deploy-test-app
+  type: cf
+  source:
+    api: {{CF_API}}
+    username: {{CF_USER}}
+    password: {{CF_PASS}}
+    organization: {{CF_TEST_ORG}}
+    space: {{CF_TEST_SPACE}}
+    skip_cert_check: true
+
+- name: deploy-uat-app
+  type: cf
+  source:
+    api: {{CF_API}}
+    username: {{CF_USER}}
+    password: {{CF_PASS}}
+    organization: {{CF_UAT_ORG}}
+    space: {{CF_UAT_SPACE}}
+    skip_cert_check: true
+
+- name: deploy-production-app
+  type: cf
+  source:
+    api: {{CF_API}}
+    username: {{CF_USER}}
+    password: {{CF_PASS}}
+    organization: {{CF_PROD_ORG}}
+    space: {{CF_PROD_SPACE}}
+    skip_cert_check: true
+
+- name: version
+  type: semver
+  source:
+    bucket: {{S3_BUCKET}}
+    key: pipeline-artifacts/current-version
+    access_key_id: {{S3_ACCESS_KEY_ID}}
+    secret_access_key: {{S3_SECRET_ACCESS_KEY}}
+    initial_version: 1.0.0
+
+- name: artifact-repository
+  type: s3
+  source:
+    bucket: {{S3_BUCKET}}
+    regexp: deployments/concourse-demo-(.*).war
+    access_key_id: {{S3_ACCESS_KEY_ID}}
+    secret_access_key: {{S3_SECRET_ACCESS_KEY}}
+
+jobs:
+- name: unit
+  plan:
+  - get: git-repo
+    trigger: true
+  - task: unit
+    file: git-repo/ci/tasks/unit.yml
+
+- name: build-binary
+  serial: true
+  plan:
+  - get: git-repo
+    passed: [unit]
+    trigger: true
+  - get: version
+    params: {bump: patch}
+  - task: build-artifact
+    file: git-repo/ci/tasks/build-artifact.yml
+    timeout: 5m
+  - put: artifact-repository
+    params:
+      file: artifact-dir/concourse-demo-*.war
+  - put: git-repo
+    params:
+      repository: git-repo
+      tag: version/number
+  - put: version
+    params: {file: version/number}
+
+- name: acceptance-tests
+  plan:
+  - aggregate:
+    - get: artifact-repository
+      passed: [build-binary]
+      trigger: true
+    - get: git-repo
+      passed: [build-binary]
+      trigger: true
+  - put: deploy-test-app
+    params:
+      manifest: git-repo/manifest-test.yml
+      current_app_name: concourse-demo
+      path: artifact-repository/concourse-demo-*.war
+  - task: verify
+    file: git-repo/ci/tasks/verify-test.yml
+    params:
+      CONCOURSE_DEMO_URL: http://concourse-demo-test.apps.pcfninja.io
+
+- name: promote-to-uat
+  plan:
+  - aggregate:
+    - get: artifact-repository
+      passed: [acceptance-tests]
+      trigger: true
+    - get: git-repo
+      passed: [acceptance-tests]
+      trigger: true
+  - put: deploy-uat-app
+    params:
+      manifest: git-repo/manifest-uat.yml
+      current_app_name: concourse-demo
+      path: artifact-repository/concourse-demo-*.war
+
+- name: manual-deploy-to-prod
+  serial: true
+  plan:
+  - aggregate:
+    - get: artifact-repository
+      passed: [promote-to-uat]
+    - get: git-repo
+      passed: [promote-to-uat]
+  - put: deploy-production-app
+    params:
+      manifest: git-repo/manifest-prod.yml
+      current_app_name: concourse-demo
+      path: artifact-repository/concourse-demo-*.war

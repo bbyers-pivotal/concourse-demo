@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image: docker:///datianshi/gradle
+
+inputs:
+  - name: git-repo
+  - name: version
+
+outputs:
+  - name: artifact-dir
+
+run:
+  path: git-repo/ci/tasks/build-artifact.sh
