@@ -62,6 +62,7 @@ jobs:
     file: git-repo/ci/tasks/unit.yml
 
 - name: build-binary
+  serial_groups: [version]
   serial: true
   plan:
   - get: git-repo
