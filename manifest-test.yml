@@ -4,3 +4,4 @@ applications:
   memory: 512M
   instances: 1
   host: concourse-demo-test
+  buildpack: java_buildpack
