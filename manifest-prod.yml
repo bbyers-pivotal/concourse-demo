@@ -1,0 +1,6 @@
+---
+applications:
+- name: concourse-demo
+  memory: 512M
+  instances: 1
+  host: concourse-demo
