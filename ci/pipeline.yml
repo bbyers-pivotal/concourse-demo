@@ -99,7 +99,7 @@ jobs:
   - task: verify
     file: git-repo/ci/tasks/verify-test.yml
     params:
-      CONCOURSE_DEMO_URL: http://concourse-demo-test.apps.pcfninja.io
+      CONCOURSE_DEMO_URL: http://concourse-demo-test.local.pcfdev.io
 
 - name: promote-to-uat
   plan:
