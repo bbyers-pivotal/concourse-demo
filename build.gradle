@@ -18,7 +18,6 @@ apply plugin: 'spring-boot'
 
 jar {
 	baseName = 'concourse-demo'
-	version = "${Version}"
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
