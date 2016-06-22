@@ -1,7 +1,7 @@
 ---
 platform: linux
 
-image: docker:///datianshi/cf-cli
+image: docker:///brianbyers/concourse-gradle
 
 inputs:
   - name: git-repo
