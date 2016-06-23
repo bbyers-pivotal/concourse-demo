@@ -164,4 +164,4 @@ jobs:
     file: git-repo/ci/tasks/restart-pipeline.yml
   - put: git-repo
     params:
-      repository: git-repo
+      repository: modified-git-repo

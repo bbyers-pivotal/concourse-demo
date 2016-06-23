@@ -4,4 +4,5 @@ set -e
 export GRADLE_OPTS=-Dorg.gradle.native=false
 version=`cat version/number`
 
-echo ${version} > git-repo/changeme
+cp -r git-repo modified-git-repo
+echo ${version} > modified-git-repo/changeme
