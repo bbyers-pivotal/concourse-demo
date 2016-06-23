@@ -11,7 +11,17 @@ set -e
 version=`cat version/number | sed -e 's/\./_/g'`
 dash="-"
 
-cf login -a $CF_API -u $CF_USER -p $CF_PASS --skip-ssl-validation
-cf target -o $CF_ORG
+target="cf api $CF_API --skip-ssl-validation"
+#echo $target
+eval $target
+
+echo "Login....."
+login="cf auth $CF_USER $CF_PASS"
+#echo $login
+eval $login
+
+echo "Create and Space"
+org_space="cf target -o $CF_ORG -s $CF_DEFAULT_TEST_SPACE"
+eval $org_space
 
 cf create-space $CF_SPACE$dash$version
