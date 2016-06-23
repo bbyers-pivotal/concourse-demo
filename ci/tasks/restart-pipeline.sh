@@ -14,4 +14,4 @@ git add changeme
 git commit -m 'triggering change'
 
 cp -r * ../another-repo
-ls ../another-repo
+ls -lah ../another-repo
