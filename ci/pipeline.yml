@@ -152,6 +152,9 @@ jobs:
     - get: git-repo
       passed: [promote-to-uat]
       trigger: true
+    - get: version
+      passed: [promote-to-uat]
+      trigger: true
   - put: deploy-production-app
     params:
       manifest: git-repo/manifest-prod.yml
