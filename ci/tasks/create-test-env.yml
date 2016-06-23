@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image: docker:///brianbyers/concourse-cfcli
+
+inputs:
+  - name: git-repo
+  - name: version
+
+run:
+  path: git-repo/ci/tasks/verify-test.sh
+
+params:
+  CF_API:
+  CF_USER:
+  CF_PASS:
+  CF_ORG:
+  CF_SPACE:

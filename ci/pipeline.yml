@@ -54,7 +54,7 @@ resources:
     secret_access_key: {{S3_SECRET_ACCESS_KEY}}
 
 jobs:
-- name: unit
+- name: unit-tests
   plan:
   - get: git-repo
     trigger: true
@@ -66,7 +66,7 @@ jobs:
   serial: true
   plan:
   - get: git-repo
-    passed: [unit]
+    passed: [unit-tests]
     trigger: true
   - get: version
     params: {bump: patch}
@@ -86,12 +86,23 @@ jobs:
 - name: acceptance-tests
   plan:
   - aggregate:
+    - get: version
+      passed: [build-binary]
+      trigger: true
     - get: artifact-repository
       passed: [build-binary]
       trigger: true
     - get: git-repo
       passed: [build-binary]
       trigger: true
+  - task: create-space
+    file: git-repo/ci/tasks/create-test-env.yml
+    params:
+      CF_API: {{CF_API}}
+      CF_USER: {{CF_USER}}
+      CF_PASS: {{CF_PASS}}
+      CF_ORG: {{CF_TEST_ORG}}
+      CF_SPACE: {{CF_TEST_SPACE}}
   - put: deploy-test-app
     params:
       manifest: git-repo/manifest-test.yml
@@ -117,14 +128,16 @@ jobs:
       current_app_name: concourse-demo
       path: artifact-repository/concourse-demo-*.jar
 
-- name: manual-deploy-to-prod
+- name: automated-deploy-to-prod
   serial: true
   plan:
   - aggregate:
     - get: artifact-repository
       passed: [promote-to-uat]
+      trigger: true
     - get: git-repo
       passed: [promote-to-uat]
+      trigger: true
   - put: deploy-production-app
     params:
       manifest: git-repo/manifest-prod.yml
