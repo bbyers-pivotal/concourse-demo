@@ -120,7 +120,12 @@ jobs:
     on_success:
       task: cleanup
       file: git-repo/ci/tasks/delete-test-env.yml
-
+      params:
+        CF_API: {{CF_API}}
+        CF_USER: {{CF_USER}}
+        CF_PASS: {{CF_PASS}}
+        CF_ORG: {{CF_TEST_ORG}}
+        CF_SPACE: {{CF_TEST_SPACE}}
 - name: promote-to-uat
   plan:
   - aggregate:
