@@ -6,7 +6,6 @@ resources:
     branch: master
     private_key: {{GIT_PRIVATE_KEY}}
     check_every: 30s
-
 - name: deploy-test-app
   type: cf
   source:
@@ -163,5 +162,3 @@ jobs:
   - task: restart-pipeline
     file: git-repo/ci/tasks/restart-pipeline.yml
   - put: git-repo
-    params:
-      repository: modified-git-repo
