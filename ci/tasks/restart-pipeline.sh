@@ -5,6 +5,6 @@ export GRADLE_OPTS=-Dorg.gradle.native=false
 version=`cat version/number`
 cd git-repo
 # cp -r git-repo/* modified-git-repo/
-echo ${version} > git-repo/changeme
+echo ${version} > changeme
 git add changeme
 git commit -m 'triggering change'
