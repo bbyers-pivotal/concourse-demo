@@ -117,6 +117,9 @@ jobs:
     file: git-repo/ci/tasks/verify-test.yml
     params:
       CONCOURSE_DEMO_URL: http://concourse-demo-test.local.pcfdev.io
+    on_success:
+      task: cleanup
+      file: git-repo/ci/tasks/delete-test-env.yml
 
 - name: promote-to-uat
   plan:

@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image: docker:///brianbyers/concourse-cfcli
+
+inputs:
+  - name: git-repo
+  - name: version
+
+run:
+  path: git-repo/ci/tasks/delete-test-env.sh
+
+params:
+  CF_API:
+  CF_USER:
+  CF_PASS:
+  CF_ORG:
+  CF_SPACE:
+  CF_APP:
