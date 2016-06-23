@@ -19,4 +19,4 @@ cf auth $CF_USER $CF_PASS
 echo "Delete Space"
 cf target -o $CF_ORG -s $CF_SPACE$dash$version
 
-cf delete -f $CF_SPACE$dash$version
+cf delete-space -f $CF_SPACE$dash$version
