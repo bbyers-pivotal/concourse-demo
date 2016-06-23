@@ -17,7 +17,6 @@ echo "Login....."
 cf auth $CF_USER $CF_PASS
 
 echo "Create and Space"
-echo $CF_DEFAULT_TEST_SPACE
-cf target -o $CF_ORG -s $CF_DEFAULT_TEST_SPACE
+cf target -o $CF_ORG -s $CF_DEFAULT_SPACE
 
 cf create-space $CF_SPACE$dash$version
