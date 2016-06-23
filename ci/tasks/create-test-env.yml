@@ -8,7 +8,7 @@ inputs:
   - name: version
 
 run:
-  path: git-repo/ci/tasks/verify-test.sh
+  path: git-repo/ci/tasks/create-test-env.sh
 
 params:
   CF_API:
