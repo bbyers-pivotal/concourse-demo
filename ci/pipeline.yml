@@ -156,3 +156,8 @@ jobs:
       manifest: git-repo/manifest-prod.yml
       current_app_name: concourse-demo
       path: artifact-repository/concourse-demo-*.jar
+  - task: restart-pipeline
+    file: git-repo/ci/tasks/restart-pipeline.yml
+  - put: git-repo
+    params:
+      repository: git-repo
