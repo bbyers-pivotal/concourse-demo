@@ -5,6 +5,7 @@ resources:
     uri: {{GIT_REPO}}
     branch: master
     private_key: {{GIT_PRIVATE_KEY}}
+    check_every: 30s
 
 - name: deploy-test-app
   type: cf
