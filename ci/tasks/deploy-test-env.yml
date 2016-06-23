@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image: docker:///brianbyers/concourse-cfcli
+
+inputs:
+  - name: git-repo
+  - name: version
+  - name: artifact-repository
+
+run:
+  path: git-repo/ci/tasks/deploy-test-env.sh
+
+params:
+  CF_API:
+  CF_USER:
+  CF_PASS:
+  CF_ORG:
+  CF_SPACE:
+  CF_APP:
