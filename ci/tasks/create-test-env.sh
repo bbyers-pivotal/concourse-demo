@@ -8,7 +8,7 @@ set -e
 #   echo "Expect status code from $CONCOURSE_DEMO_URL as 200, but got $status_code"
 #   exit 1
 # fi
-version=`cat version/number`
+version=`cat version/number | sed -e 's/\./_/g'`
 
 cf login -a $CF_API -u $CF_USER -p $CF_PASS --skip-ssl-validation
 cf target -o $CF_ORG
