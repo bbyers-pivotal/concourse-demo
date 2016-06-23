@@ -8,7 +8,7 @@ inputs:
   - name: version
 
 outputs:
-  - name: modified-git-repo
+  - name: another-repo
 
 run:
   path: git-repo/ci/tasks/restart-pipeline.sh

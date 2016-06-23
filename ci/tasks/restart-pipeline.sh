@@ -12,3 +12,6 @@ git config --global user.name "Brian Byers (Automated)"
 echo ${version} > changeme
 git add changeme
 git commit -m 'triggering change'
+
+cp -r * ../another-repo
+ls ../another-repo
