@@ -143,6 +143,7 @@ jobs:
       path: artifact-repository/concourse-demo-*.jar
 
 - name: automated-deploy-to-prod
+  serial_groups: [version]
   serial: true
   plan:
   - aggregate:
@@ -153,7 +154,6 @@ jobs:
       passed: [promote-to-uat]
       trigger: true
     - get: version
-      passed: [promote-to-uat]
       trigger: true
   - put: deploy-production-app
     params:
