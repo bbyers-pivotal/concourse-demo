@@ -11,7 +11,12 @@ set -e
 version=`cat version/number | sed -e 's/\./_/g'`
 dash="-"
 
-cf login -a $CF_API -u $CF_USER -p $CF_PASS --skip-ssl-validation
+cf api $CF_API --skip-ssl-validation
+
+echo "Login....."
+cf auth $CF_USER $CF_PASS
+
+echo "Create and Space"
 cf target -o $CF_ORG -s $CF_SPACE$dash$version
 
 cf push $CF_APP -f git-repo/manifest-test.yml -p artifact-repository/concourse-demo-*.jar
