@@ -8,7 +8,10 @@ echo $SSH_KEY > ~/.ssh/id_rsa
 chmod 0600 ~/.ssh/id_rsa
 cat ~/.ssh/id_rsa
 
+cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
+LogLevel quiet
+EOF
 
 cd ~/
 
