@@ -8,6 +8,8 @@ echo $SSH_KEY > ~/.ssh/id_rsa
 chmod 0600 ~/.ssh/id_rsa
 cat ~/.ssh/id_rsa
 
+SSH_ASKPASS=/opt/resource/askpass.sh DISPLAY= ssh-add ~/.ssh/id_rsa >/dev/null
+
 cat > ~/.ssh/config <<EOF
 StrictHostKeyChecking no
 LogLevel quiet
