@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image: docker:///brianbyers/concourse-gradle
+
+inputs:
+  - name: git-repo
+  - name: version
+  - name: release-candidate
+
+outputs:
+  - name: final-dir
+
+run:
+  path: git-repo/ci/tasks/prepare-final.sh
+
+params:
+  base_name:
