@@ -5,6 +5,11 @@ image: docker:///brianbyers/concourse-git
 
 inputs:
   - name: version
+  - name: git-repo
 
 run:
   path: git-repo/ci/tasks/restart-pipeline.sh
+
+params:
+  SSH_KEY:
+  GIT_REPO:
