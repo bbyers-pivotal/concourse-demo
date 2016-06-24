@@ -12,4 +12,4 @@ cf auth $CF_USER $CF_PASS
 echo "Create and Space"
 cf target -o $CF_ORG -s $CF_SPACE$dash$version
 
-cf push $CF_APP$dash$version -f git-repo/manifest-test.yml -p artifact-repository/concourse-demo-*.jar
+cf push $CF_APP$dash$version -f git-repo/manifest-test.yml -p release-candidate/concourse-demo-*.jar
