@@ -4,11 +4,7 @@ platform: linux
 image: docker:///brianbyers/concourse-git
 
 inputs:
-  - name: git-repo
   - name: version
-
-outputs:
-  - name: another-repo
 
 run:
   path: git-repo/ci/tasks/restart-pipeline.sh
