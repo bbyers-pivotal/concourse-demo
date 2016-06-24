@@ -6,7 +6,7 @@ image: docker:///brianbyers/concourse-cfcli
 inputs:
   - name: git-repo
   - name: version
-  - name: artifact-repository
+  - name: release-candidate
 
 run:
   path: git-repo/ci/tasks/deploy-test-env.sh
