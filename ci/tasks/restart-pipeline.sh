@@ -8,6 +8,9 @@ echo $SSH_KEY > ~/.ssh/id_rsa
 chmod 0600 ~/.ssh/id_rsa
 cat ~/.ssh/id_rsa
 
+eval $(ssh-agent) >/dev/null 2>&1
+trap "kill $SSH_AGENT_PID" 0
+
 SSH_ASKPASS=/opt/resource/askpass.sh DISPLAY= ssh-add ~/.ssh/id_rsa >/dev/null
 
 cat > ~/.ssh/config <<EOF
