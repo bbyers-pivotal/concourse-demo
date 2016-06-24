@@ -5,8 +5,8 @@ version=`cat version/number`
 
 mkdir ~/.ssh
 cat $SSH_KEY > ~/.ssh/id_rsa
-chmod 0600 ~/.ssh/id_rsa
-cat ~/.ssh/id_rsa
+# chmod 0600 ~/.ssh/id_rsa
+# cat ~/.ssh/id_rsa
 
 # cd ~/
 #
