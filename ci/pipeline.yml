@@ -5,7 +5,7 @@ resources:
     uri: {{GIT_REPO}}
     branch: master
     private_key: {{GIT_PRIVATE_KEY}}
-    check_every: 30s
+
 - name: deploy-test-app
   type: cf
   source:
@@ -45,7 +45,15 @@ resources:
     secret_access_key: {{S3_SECRET_ACCESS_KEY}}
     initial_version: 1.0.0
 
-- name: artifact-repository
+- name: release-candidate
+  type: s3
+  source:
+    bucket: {{S3_BUCKET}}
+    regexp: pipeline-artifacts/concourse-demo-(.*).jar
+    access_key_id: {{S3_ACCESS_KEY_ID}}
+    secret_access_key: {{S3_SECRET_ACCESS_KEY}}
+
+- name: production-release
   type: s3
   source:
     bucket: {{S3_BUCKET}}
@@ -53,112 +61,136 @@ resources:
     access_key_id: {{S3_ACCESS_KEY_ID}}
     secret_access_key: {{S3_SECRET_ACCESS_KEY}}
 
+
+- name: trigger-build
+  type: time
+  source: {interval: 10m}
+
+# groups:
+# - name: Concourse Demo
+#   jobs:
+#     - unit-tests
+#     - build-jar
+#     - integration-tests
+#     - promote-to-uat
+#     - ship-it
+#     - major
+#     - minor
+#     - patch
+
 jobs:
-- name: unit-tests
-  plan:
-  - get: git-repo
-    trigger: true
-  - task: unit
-    file: git-repo/ci/tasks/unit.yml
-
-- name: build-binary
-  serial_groups: [version]
-  serial: true
-  plan:
-  - get: git-repo
-    passed: [unit-tests]
-    trigger: true
-  - get: version
-    params: {bump: patch}
-  - task: build-artifact
-    file: git-repo/ci/tasks/build-artifact.yml
-    timeout: 5m
-  - put: artifact-repository
-    params:
-      file: artifact-dir/concourse-demo-*.jar
-  - put: git-repo
-    params:
-      repository: git-repo
-      tag: version/number
-  - put: version
-    params: {file: version/number}
-
-- name: acceptance-tests
-  plan:
-  - aggregate:
-    - get: version
-      passed: [build-binary]
-      trigger: true
-    - get: artifact-repository
-      passed: [build-binary]
-      trigger: true
+  - name: unit-tests
+    plan:
     - get: git-repo
-      passed: [build-binary]
       trigger: true
-  - task: create-space
-    file: git-repo/ci/tasks/create-test-env.yml
-    params:
-      CF_API: {{CF_API}}
-      CF_USER: {{CF_USER}}
-      CF_PASS: {{CF_PASS}}
-      CF_ORG: {{CF_TEST_ORG}}
-      CF_SPACE: {{CF_TEST_SPACE}}
-      CF_DEFAULT_SPACE: {{CF_DEFAULT_TEST_SPACE}}
-  - task: deploy-test-env
-    file: git-repo/ci/tasks/deploy-test-env.yml
-    params:
-      CF_API: {{CF_API}}
-      CF_USER: {{CF_USER}}
-      CF_PASS: {{CF_PASS}}
-      CF_ORG: {{CF_TEST_ORG}}
-      CF_SPACE: {{CF_TEST_SPACE}}
-      CF_APP: concourse-demo
-  - task: verify
-    file: git-repo/ci/tasks/verify-test.yml
-    params:
-      CONCOURSE_DEMO_URL: http://concourse-demo-test.local.pcfdev.io
-    on_success:
-      task: cleanup
-      file: git-repo/ci/tasks/delete-test-env.yml
+    - task: unit
+      file: git-repo/ci/tasks/unit.yml
+
+  - name: build-jar
+    serial_groups: [version]
+    serial: true
+    plan:
+    - get: git-repo
+      passed: [unit-tests]
+      trigger: true
+    - get: trigger-build
+      trigger: true
+    - get: version
+      params: { pre: rc }
+    - task: build-artifact
+      file: git-repo/ci/tasks/build-artifact.yml
+      timeout: 5m
+    - put: release-candidate
       params:
-        CF_API: {{CF_API}}
-        CF_USER: {{CF_USER}}
-        CF_PASS: {{CF_PASS}}
-        CF_ORG: {{CF_TEST_ORG}}
-        CF_SPACE: {{CF_TEST_SPACE}}
-- name: promote-to-uat
-  plan:
-  - aggregate:
-    - get: artifact-repository
-      passed: [acceptance-tests]
-      trigger: true
-    - get: git-repo
-      passed: [acceptance-tests]
-      trigger: true
-  - put: deploy-uat-app
-    params:
-      manifest: git-repo/manifest-uat.yml
-      current_app_name: concourse-demo
-      path: artifact-repository/concourse-demo-*.jar
+        file: artifact-dir/concourse-demo-*.jar
+    - put: git-repo
+      params:
+        repository: git-repo
+        tag: version/number
+    - put: version
+      params: {file: version/number}
 
-- name: automated-deploy-to-prod
-  serial_groups: [version]
-  serial: true
-  plan:
-  - aggregate:
-    - get: artifact-repository
-      passed: [promote-to-uat]
-      trigger: true
-    - get: git-repo
-      passed: [promote-to-uat]
-      trigger: true
-    - get: version
-      trigger: true
-  - put: deploy-production-app
-    params:
-      manifest: git-repo/manifest-prod.yml
-      current_app_name: concourse-demo
-      path: artifact-repository/concourse-demo-*.jar
-  - task: restart-pipeline
-    file: git-repo/ci/tasks/restart-pipeline.yml
-  - put: git-repo
+  - name: integration-tests
+    serial_groups: [version]
+    plan:
+    - aggregate:
+      - get: version
+        passed: [build-jar]
+        trigger: true
+      - get: release-candidate
+        passed: [build-jar]
+      - get: git-repo
+        passed: [build-jar]
+    - put: deploy-test-app
+      params:
+        manifest: git-repo/manifest-test.yml
+        current_app_name: concourse-demo
+        path: release-candidate/concourse-demo-*.jar
+    - task: verify
+      file: git-repo/ci/tasks/verify-test.yml
+      params:
+        CONCOURSE_DEMO_URL: http://concourse-demo-test.apps.pcfninja.io
+
+  - name: promote-to-uat
+    serial_groups: [version]
+    plan:
+    - aggregate:
+      - get: release-candidate
+        passed: [integration-tests]
+        trigger: true
+      - get: version
+        passed: [integration-tests]
+      - get: git-repo
+        passed: [integration-tests]
+    - put: deploy-uat-app
+      params:
+        manifest: git-repo/manifest-uat.yml
+        current_app_name: concourse-demo
+        path: release-candidate/concourse-demo-*.jar
+
+  - name: ship-it
+    serial_groups: [version]
+    serial: true
+    plan:
+    - aggregate:
+      - get: release-candidate
+        passed: [promote-to-uat]
+        trigger: true
+      - get: version
+        params: { bump: final }
+        passed: [promote-to-uat]
+      - get: git-repo
+        passed: [promote-to-uat]
+    - task: prepare-final
+      file: git-repo/ci/tasks/prepare-final.yml
+      params:
+        base_name: concourse-demo
+    - put: production-release
+      params:
+        file: final-dir/concourse-demo-*.jar
+    - put: deploy-production-app
+      params:
+        manifest: git-repo/manifest-prod.yml
+        current_app_name: concourse-demo
+        path: final-dir/concourse-demo-*.jar
+
+  - name: major
+    serial_groups: [ version ]
+    plan:
+      - put: version
+        params: { bump: major, pre: rc }
+
+  - name: minor
+    serial_groups: [ version ]
+    plan:
+      - put: version
+        params: { bump: minor, pre: rc }
+
+  - name: patch
+    serial_groups: [ version ]
+    plan:
+      - get: version
+        passed: [ ship-it ]
+        trigger: true
+      - put: version
+        params: { bump: patch }

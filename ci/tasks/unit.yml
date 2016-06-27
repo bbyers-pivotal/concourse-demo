@@ -5,6 +5,7 @@ image_resource:
   type: docker-image
   source:
     repository: brianbyers/concourse-gradle
+    tag: "latest"
 
 inputs:
   - name: git-repo
